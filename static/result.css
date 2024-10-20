@@ -1,0 +1,137 @@
+p {
+  font-size: 20px;
+  text-align: center;
+  padding-top: 5%;
+}
+
+hr.sep-2 {
+  border: 0; 
+  height: 1px; 
+  background-image: linear-gradient(to right, #f0f0f0, #00b9ff, #59d941, #f0f0f0);
+}
+
+/* 卡片容器，控制每行三個卡片，固定間距 */
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px; /* 卡片之間的固定間距 */
+  justify-content: center; /* 水平居中 */
+  width: 100%;
+  max-width: 1400px; /* 限制容器的最大寬度 */
+  position: relative; /* 如果需要，將 position 設為 relative 以避免影響其他元素 */
+  margin: 0 auto;
+  margin-bottom: 100px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: calc(33.333% - 40px); /* 確保每行三個卡片，減去間距 */
+  max-width: 320px; /* 卡片最大寬度 */
+  height: auto; /* 高度自適應 */
+  background-color: var(--white);
+  border-radius: 10px;
+  box-shadow: 0px 10px 12px rgba(0, 0, 0, 0.08), -4px -4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 15px;
+  text-decoration: none; /* 去除文字底線 */
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0px 20px 20px rgba(0, 0, 0, 0.1), -4px -4px 12px rgba(0, 0, 0, 0.08);
+}
+
+
+.card-image-container {
+  width: 100%;
+  height: 180px; /* 設置固定高度，保證圖片一致性 */
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background-color: rgb(165, 165, 165);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ 
+}
+
+.card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 圖片自動調整大小，保持比例 */
+  border-radius: 10px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 17px;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  font-weight: 600;
+  color: #1797b8;
+  cursor: default;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  text-decoration: none; /* 去除文字底線 */
+}
+
+.card-des {
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  margin: 0;
+  font-size: 13px;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+  color: #1797b8;
+  cursor: default;
+  text-decoration: none; /* 去除文字底線 */
+}
+
+
+@media (max-width: 1024px) {
+  .card {
+    width: calc(50% - 30px); /* 平板設備，每行兩個卡片 */
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: calc(100% - 20px); /* 手機設備，每行一個卡片 */
+  }
+}
+
+
+
+
+/* =================== */
+
+  /* 隱藏篩選框 */
+  .hidden {
+    display: none;
+  }
+  
+  /* 顯示篩選框 */
+  .visible {
+    background-color: rgba(255, 255, 255, 0.415);
+    padding: 20px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: auto;
+    /* min-width: 300px;  
+    max-width: 90%;   */
+    
+    height: auto;
+    margin: 20px 0;  /* 增加上下邊距，避免緊貼邊框 */
+  } 
+ 

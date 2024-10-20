@@ -1,0 +1,33 @@
+
+/* 選擇 ===================================================================*/
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    /* 與前後間距 */
+    margin-top: 0px; 
+    margin-bottom: 10px;
+    padding-left: 5px; /* 控制內部左右間距 */
+    padding-right: 5px; /* 控制內部左右間距 */
+}
+
+.column {
+    flex: 1;
+    padding: 0 10px;
+    min-width: 200px;
+}
+
+select, input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+select{
+    cursor: pointer;
+}
+
+
+/* ============================================= */
+

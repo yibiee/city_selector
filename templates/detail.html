@@ -1,0 +1,500 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>{{ city.city_name_cht }}資訊</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="description" content="{{ city.city_name_cht }} 的旅遊資訊，包括國家、景點等數據">
+		<meta name="keywords" content="旅遊, 景點, {{ city.city_name_cht }}, {{ city.country_name_cht }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+		<link rel="stylesheet" href="{{ url_for('static', filename='detail.css') }}">
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+	</head>
+
+	<body>
+		<header class="header-outer">
+			<div class="header-inner responsive-wrapper">
+			<div class="header-logo">
+				<img src="/static/image_page/logo.svg" >
+			</div>
+			<nav class="header-navigation">
+			  <a href="/">首頁</a>
+			  <a href="javascript:history.back()">回上一頁</a>
+			  <!-- <a href="#">Blog</a>
+			  <a href="#">Contact</a> -->
+			  
+			</nav>
+			</div>
+		</header>
+
+		<!-- top section -->
+		<div class="slider-wrapper">
+			<div class="city-info">
+				{{ city.city_name_cht }} ({{ city.country_name_cht }})
+			</div>
+			<div class="slider-container">
+				{% for image in image_list %}
+					<div class="slide">
+						<img src="{{ url_for('static', filename='attractions_images/' + image) }}" 
+							alt="{{ city.city_name_cht }}" 
+							class="slide-img">
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		<section class="et-hero-tabs">
+			<div class="et-hero-tabs-container">
+				<a class="et-hero-tab" href="#intro"><strong>簡介</strong></a>
+				<a class="et-hero-tab" href="#info"><strong>相關資訊</strong></a>
+				<a class="et-hero-tab" href="#attractions"><strong>觀光景點</strong></a>  
+				<a class="et-hero-tab" href="#location"><strong>位置</strong></a>
+			</div>
+		</section>
+		
+		<!-- Main section -->
+		<main class="et-main">
+			<!-- 簡介 -->
+			<section class="et-slide" id="intro">
+				<!-- 內部的「關於」區塊 -->
+				<div class="outer-section">
+			
+					<!-- Wikipedia 內容區域 -->
+					<div id="wiki-content-short">
+						<!-- 縮短的內容 -->
+					</div>
+					<div id="wiki-content-full" class="content" style="display: none;">
+						<!-- 完整的內容 -->
+					</div>
+			
+					<!-- 展開/收起按鈕 -->
+					<button id="toggleButton">展開</button>
+				</div>
+			</section>
+			
+			<!-- Wikipedia API -->
+			<script>
+				const cityName = "{{ city.city_name_cht }}";
+				const apiUrl = `https://zh.wikipedia.org/w/api.php?action=query&format=json&redirects=1&prop=extracts&titles=${cityName}&exintro=true&origin=*&variant=zh-tw`;
+			
+				const contentShort = document.getElementById('wiki-content-short');
+				const contentFull = document.getElementById('wiki-content-full');
+				const toggleButton = document.getElementById('toggleButton');
+				const introSection = document.getElementById('intro-section'); // 修改的部分
+			
+				fetch(apiUrl)
+					.then(response => response.json())
+					.then(data => {
+						const pages = data.query.pages;
+						const page = Object.values(pages)[0];
+			
+						if (page.extract) {
+							const contentText = page.extract;
+			
+							const paragraphs = contentText.split('\n').filter(p => p.trim() !== '');
+							let formattedContent = '';
+							paragraphs.forEach(paragraph => {
+								formattedContent += `<p>${paragraph}</p><br>`;
+							});
+			
+							contentShort.innerHTML = formattedContent.substring(0, 300) + '...';
+							contentFull.innerHTML = formattedContent;
+			
+							if (contentText.length <= 300) {
+								toggleButton.style.display = 'none';
+								contentFull.style.display = 'block';
+								contentShort.style.display = 'none';
+							} else {
+								contentFull.style.display = 'none';
+								contentShort.style.display = 'block';
+							}
+			
+						} else {
+							// 找不到介紹內容時，隱藏整個區域
+							introSection.style.display = 'none'; // 隱藏區域
+						}
+					})
+					.catch(error => {
+						console.error('Error fetching Wikipedia data:', error);
+						// 發生錯誤，隱藏整個區域
+						introSection.style.display = 'none'; // 隱藏區域
+					});
+			
+				// 展開/收起
+				toggleButton.addEventListener('click', function () {
+					if (contentFull.style.display === 'none') {
+						contentFull.style.display = 'block';
+						contentShort.style.display = 'none';
+						toggleButton.textContent = '收起';
+					} else {
+						contentFull.style.display = 'none';
+						contentShort.style.display = 'block';
+						toggleButton.textContent = '展開';
+					}
+				});
+			</script>
+								
+			
+			<!-- 相關資訊 -->
+			<section class="et-slide" id="info">
+				<div class="outer-section">
+					<div>
+						<span>&#9733;</span><strong> 機場：</strong>{{ city.airport_name }}
+					</div>
+					
+					<div id="country-info" class="alert alert-info">正在加載國家資訊...</div>
+				</div>
+			</section>
+
+			<!-- 相關資訊 + restcountries API -->
+			<script>
+				const apiKey = 'e4ec2e69cd9be149b94c4a25'; // 請替換為您的 ExchangeRate-API API 金鑰
+				const targetCurrency = 'TWD'; // 目標貨幣
+				const countryName = "{{ city.country_name }}"; // 從模板中獲取 countryName
+			
+				// 先取得國家資訊，再使用獲取的貨幣代碼作為基準貨幣
+				fetch('https://restcountries.com/v3.1/name/' + countryName)
+					.then(response => response.json())
+					.then(data => {
+						if (data && data.length > 0) {
+							var country = data[0];
+							var languages = Object.values(country.languages).join(", ");
+							var currencyName = Object.values(country.currencies)[0].name;
+							var currencyCode = Object.keys(country.currencies)[0]; // 從國家資訊獲取貨幣代碼
+			
+							// 使用獲取的貨幣代碼作為基準貨幣，查詢對台幣的匯率
+							fetch(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
+								.then(response => response.json())
+								.then(exchangeData => {
+									if (exchangeData.result === 'success') {
+										const rate = exchangeData.conversion_rates[targetCurrency];
+			
+										// 顯示國家資訊與匯率
+										var info = `
+											<div>
+												<span>&#9733;</span> <strong>匯率：</strong> ${currencyName} (${currencyCode})
+												<span><strong> : </strong> TWD <strong>=</strong> 1 <strong>:</strong> ${rate}</span>    
+											</div>
+											<div>
+												<span>&#9733;</span> <strong>語言：</strong> ${languages}
+											</div>
+											<div>
+												<span>&#9733;</span> <strong>時區：</strong> ${country.timezones[0]}
+											</div>
+										`;
+										document.getElementById('country-info').innerHTML = info;
+									} else {
+										console.error('無法取得匯率資料');
+										document.getElementById('country-info').innerHTML = '無法獲取匯率資料';
+									}
+								})
+								.catch(error => {
+									console.error('ExchangeRate-API 請求錯誤:', error);
+									document.getElementById('country-info').innerHTML = '加載匯率資料時出錯';
+								});
+						} else {
+							document.getElementById('country-info').innerHTML = '';
+						}
+					})
+					.catch(error => {
+						document.getElementById('country-info').innerHTML = '加載國家資訊時出錯';
+						console.error('Error fetching country data:', error);
+					});
+			</script>
+			
+
+			<!-- 觀光景點 -->
+			<section class="et-slide" id="attractions">
+				<div class="outer-section">
+					<div id="attraction-info"  class="attraction-container">正在加載景點資訊...</div>
+				</div>
+				<!-- 加載 Google Maps API -->
+			</section>
+
+			<!-- 觀光景點資訊 -->
+			<script>
+				let map;
+				let service;
+			
+				// 初始化景點資訊
+				function initAttractions() {
+					const attractions = "{{ city.attractions }}".split(",").map(name => name.trim()).filter(name => name.length > 0);
+					document.getElementById('attraction-info').innerHTML = ''; // 清空初始化訊息
+			
+					// 遍歷每個景點並使用 Google Places API 請求詳細資料
+					attractions.forEach(attractionName => {
+						// 顯示 loading 樣式
+						const loadingElement = document.createElement('div');
+						loadingElement.className = 'attraction-item';
+						loadingElement.innerHTML = `<h3>${attractionName}</h3><p>正在加載...</p>`;
+						document.getElementById('attraction-info').appendChild(loadingElement);
+			
+						// 使用 Google Places API 查詢景點
+						fetchPlaceDetails(attractionName, loadingElement);
+					});
+				}
+			
+				function fetchPlaceDetails(queryName, loadingElement) {
+					// 使用 `textSearch` 查詢中文景點，並指定語言參數為繁體中文
+					const request = {
+						query: queryName,
+						fields: ['place_id', 'name'],
+						language: 'zh-TW'
+					};
+			
+					service.textSearch(request, (results, status) => {
+						if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+							const placeId = results[0].place_id;
+							getPlaceDetails(placeId, loadingElement);
+						} else {
+							console.error('未找到該景點的 Google Place 資訊: ' + status);
+							loadingElement.innerHTML = `<p>無法找到該景點的資訊</p>`;
+						}
+					});
+				}
+			
+				function getPlaceDetails(placeId, loadingElement) {
+					const request = {
+						placeId: placeId,
+						fields: ['name', 'formatted_address', 'opening_hours', 'photos', 'rating', 'price_level'],
+						language: 'zh-TW'
+					};
+			
+					service.getDetails(request, (place, status) => {
+						if (status === google.maps.places.PlacesServiceStatus.OK) {
+							displayPlaceDetails(place, loadingElement);
+						} else {
+							console.error('無法獲取景點詳細資訊: ' + status);
+							loadingElement.innerHTML = `<p>無法獲取該景點的詳細資訊</p>`;
+						}
+					});
+				}
+			
+				function displayPlaceDetails(place, loadingElement) {
+					const name = place.name;
+					const address = place.formatted_address ? `<p>地址: ${place.formatted_address}</p>` : '';
+					const openingHours = place.opening_hours ? `<p>開放時間: ${place.opening_hours.weekday_text.join(', ')}</p>` : '';
+					const rating = place.rating ? `<p>評分: ${place.rating}</p>` : '';
+					const priceLevel = place.price_level !== undefined ? `<p>價格等級: ${place.price_level}</p>` : '';
+					const photoUrl = place.photos && place.photos.length > 0 ? place.photos[0].getUrl({ maxWidth: 150 }) : 'https://via.placeholder.com/150'; // 使用一個可靠的預設圖片 URL
+			
+					const content = `
+						<img src="${photoUrl}" alt="${name}" style="width: 150px; height: auto; margin-right: 15px;" />
+						<div>
+							<h3>${name}</h3>
+							${address}
+							${openingHours}
+							${rating}
+							${priceLevel}
+						</div>
+					`;
+			
+					loadingElement.innerHTML = content;
+				}
+			</script>			
+
+			<!-- google地圖 -->
+			<section class="et-slide" id="location">
+				<div class="outer-section">
+			
+					<!-- 顯示按鈕 -->
+					<div class="button-container" style="text-align: center; margin-top: 10px;">
+						<button id="showCityCenter" class="large-text2">市中心位置</button>
+						<button id="showAirports" class="large-text2">最近機場位置</button>
+						<button id="showAttractions" class="large-text">附近景點</button>
+						<button id="showRestaurants" class="large-text">附近餐廳</button>
+						<button id="showHotels" class="large-text">附近飯店</button>
+					</div>
+			
+					<!-- 地圖容器 -->
+					<div id="map" class="infowindow-content infowindow-red" style="height: 400px;"></div>
+			
+					<!-- 地圖相關的 JavaScript -->
+					<script>
+						let markers = [];
+						let currentTypes = {}; // 紀錄當前顯示的類型
+						let currentCityCenterMarker = null; // 紀錄市中心標記
+						let currentAirportMarker = null; // 紀錄機場標記
+			
+						// 初始化地圖
+						function initMap() {
+							const city = "{{ city.city_name }}"; // 動態城市名稱
+							const geocoder = new google.maps.Geocoder();
+			
+							// 使用城市名稱進行地理編碼
+							geocoder.geocode({ address: city }, function (results, status) {
+							if (status === 'OK') {
+								const cityCenter = results[0].geometry.location;
+								const mapOptions = {
+									center: cityCenter,
+									zoom: 12,
+								};
+
+								map = new google.maps.Map(document.getElementById('map'), mapOptions);
+								service = new google.maps.places.PlacesService(map);
+								
+								// 標示市中心
+								currentCityCenterMarker = new google.maps.Marker({
+									map: map,
+									position: cityCenter,
+									title: '市中心位置',
+								});
+
+								// 初始化景點資訊
+								initAttractions(); // 在這裡呼叫
+							} else {
+								alert('地理編碼失敗，原因: ' + status);
+							}
+						});
+
+			
+						// 搜索並顯示附近的地點
+						function searchNearby(type, color, radius = 5000) {
+							// 如果當前已經顯示該類型的標記，則清除
+							if (currentTypes[type]) {
+								clearMarkers(type); // 點擊相同按鈕取消標記
+								return;
+							}
+			
+							// 開始新的搜尋，記錄當前類型
+							currentTypes[type] = [];
+			
+							service.nearbySearch({
+								location: map.getCenter(),
+								radius: radius,
+								type: [type]
+							}, function (results, status) {
+								if (status === google.maps.places.PlacesServiceStatus.OK) {
+									for (let i = 0; i < results.length; i++) {
+										createMarker(results[i], color, type);
+									}
+								} else {
+									console.error('搜尋結果錯誤: ' + status);
+								}
+							});
+						}
+			
+						// 創建標記
+						function createMarker(place, color, type) {
+							const iconUrl = `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
+							const marker = new google.maps.Marker({
+								map: map,
+								position: place.geometry.location,
+								icon: iconUrl
+							});
+			
+							// 將標記存入對應類型的陣列
+							currentTypes[type].push(marker);
+			
+							google.maps.event.addListener(marker, 'click', function () {
+								const infowindow = new google.maps.InfoWindow({
+									content: `<div class="infowindow-large">${place.name}</div>`
+								});
+								infowindow.open(map, marker);
+							});
+						}
+			
+						// 清除指定類型的標記
+						function clearMarkers(type) {
+							if (currentTypes[type]) {
+								for (let i = 0; i < currentTypes[type].length; i++) {
+									currentTypes[type][i].setMap(null);
+								}
+								delete currentTypes[type];
+							}
+						}
+			
+						// 清除所有標記
+						function clearAllMarkers() {
+							for (let type in currentTypes) {
+								clearMarkers(type);
+							}
+						}
+			
+						// 綁定按鈕事件
+						document.getElementById('showAttractions').addEventListener('click', function () {
+							searchNearby('tourist_attraction', 'yellow');
+						});
+			
+						
+			
+						// 市中心位置按鈕
+						document.getElementById('showCityCenter').addEventListener('click', function () {
+							const city = "{{ city.city_name }}"; // 動態城市名稱
+							const geocoder = new google.maps.Geocoder();
+							geocoder.geocode({ address: city }, function (results, status) {
+								if (status === 'OK') {
+									const cityCenter = results[0].geometry.location;
+									map.setCenter(cityCenter); // 設定地圖中心為市中心
+									map.setZoom(12);
+			
+									// 清除所有標記，保留市中心標記
+									clearAllMarkers();
+									if (currentCityCenterMarker) {
+										currentCityCenterMarker.setMap(null);
+									}
+									currentCityCenterMarker = new google.maps.Marker({
+										map: map,
+										position: cityCenter,
+										title: '市中心位置',
+									});
+								} else {
+									alert('無法找到市中心位置，原因: ' + status);
+								}
+							});
+						});
+			
+						// 最近機場位置按鈕
+						document.getElementById('showAirports').addEventListener('click', function () {
+							const airportName = "{{ city.airport_name }}"; // 取得資料庫中的機場名稱
+							const geocoder = new google.maps.Geocoder();
+			
+							// 使用機場名稱進行地理編碼
+							geocoder.geocode({ address: airportName }, function (results, status) {
+								if (status === 'OK') {
+									const airportLocation = results[0].geometry.location;
+									map.setCenter(airportLocation); // 設定地圖中心為機場位置
+									map.setZoom(12);
+			
+									// 清除所有標記，保留機場標記
+									clearAllMarkers();
+									if (currentAirportMarker) {
+										currentAirportMarker.setMap(null);
+									}
+									currentAirportMarker = new google.maps.Marker({
+										map: map,
+										position: airportLocation,
+										title: airportName
+									});
+			
+									
+								} else {
+									alert('無法找到機場位置，原因: ' + status);
+								}
+							});
+						});
+						// 顯示附近餐廳按鈕
+						document.getElementById('showRestaurants').addEventListener('click', function () {
+							searchNearby('restaurant', 'red');
+						});
+
+						// 顯示附近住宿按鈕
+						document.getElementById('showHotels').addEventListener('click', function () {
+							searchNearby('lodging', 'green');
+						});
+					}
+					</script>
+				</div>
+			</section>
+			
+			<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBJIpymJ7--v300uTNY4xzIjqXy4Ex2iNI&libraries=places&callback=initMap"></script>
+		</main>
+
+	
+	<!-- 引入 jQuery 庫 -->
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="{{ url_for('static', filename='detail.js') }}"></script>
+	</body>
+</html>
